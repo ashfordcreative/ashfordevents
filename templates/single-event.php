@@ -18,7 +18,6 @@ while ( have_posts() ) :
 	$ash_text    = ash_events_text_color( $ash_id );
 	$ash_label   = ash_events_label( $ash_id );
 	$ash_date    = get_post_meta( $ash_id, '_ash_start_date', true );
-	$ash_website = get_post_meta( $ash_id, '_ash_website', true );
 	$ash_terms   = get_the_terms( $ash_id, 'ash_event_cat' );
 	$ash_ics     = add_query_arg( array( 'ash_ical' => '1', 'event' => $ash_id ), home_url( '/' ) );
 	$ash_google  = Ash_Events_Single::google_link( $ash_id );
@@ -62,10 +61,6 @@ while ( have_posts() ) :
 					<?php endif; ?>
 
 					<div class="ash-single-page__actions">
-						<?php if ( $ash_website ) : ?>
-							<a class="ash-single-page__cta" href="<?php echo esc_url( $ash_website ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'Event Details & Registration', 'ashford-events' ); ?></a>
-						<?php endif; ?>
-
 						<?php if ( $ash_date ) : ?>
 							<details class="ash-single-page__atc">
 								<summary>

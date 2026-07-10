@@ -391,7 +391,7 @@
 	align-items: start;
 }
 .ash-single-page.has-image .ash-single-page__layout {
-	grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+	grid-template-columns: minmax(0, 1fr) minmax(336px, 480px);
 	gap: 48px;
 }
 .ash-single-page__main {
@@ -429,10 +429,11 @@
 	font-weight: 600;
 	letter-spacing: 0.02em;
 }
-.ash-single-page__title {
+.ash-single-page__title,
+.ash-single-page h1.ash-single-page__title {
 	margin: 0 0 20px;
 	font-family: inherit;
-	font-size: 45px;
+	font-size: 45px !important;
 	font-weight: 700;
 	line-height: 1.15;
 	letter-spacing: -0.02em;
@@ -558,13 +559,7 @@
 	width: 100%;
 }
 .ash-single-page__amenities-heading {
-	margin: 0 0 14px;
-	font-family: inherit;
-	font-size: 22px;
-	font-weight: 700;
-	letter-spacing: -0.01em;
-	line-height: 1.25;
-	color: var(--ash-text);
+	display: none;
 }
 .ash-single-page__amenity-list {
 	list-style: none;
@@ -632,8 +627,8 @@
 }
 .ash-single-page__related-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 26px;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 22px;
 }
 .ash-single-page__related-card {
 	display: block;
@@ -706,6 +701,11 @@
 	color: var(--ash-text);
 }
 
+@media (max-width: 1100px) {
+	.ash-single-page__related-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
 @media (max-width: 900px) {
 	.ash-single-page.has-image .ash-single-page__layout {
 		grid-template-columns: 1fr;
@@ -723,17 +723,17 @@
 }
 @media (max-width: 782px) {
 	.ash-single-page__related-grid {
-		grid-template-columns: 1fr;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 @media (max-width: 600px) {
 	.ash-single-page {
 		padding: 36px 18px 56px;
 	}
-	.ash-single-page__title {
-		font-size: 32px;
+	.ash-single-page__title,
+	.ash-single-page h1.ash-single-page__title {
+		font-size: 32px !important;
 	}
-	.ash-single-page__amenities-heading,
 	.ash-single-page__related-heading {
 		font-size: 24px;
 	}
@@ -743,6 +743,9 @@
 	.ash-single-page__amenity {
 		gap: 12px;
 		padding: 16px 0;
+	}
+	.ash-single-page__related-grid {
+		grid-template-columns: 1fr;
 	}
 }
 

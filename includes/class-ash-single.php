@@ -72,7 +72,6 @@ class Ash_Events_Single {
 		$date    = get_post_meta( $post_id, '_ash_start_date', true );
 		$time    = get_post_meta( $post_id, '_ash_start_time', true );
 		$end     = get_post_meta( $post_id, '_ash_end_time', true );
-		$website = get_post_meta( $post_id, '_ash_website', true );
 		$label   = ash_events_label( $post_id );
 
 		ob_start();
@@ -87,10 +86,6 @@ class Ash_Events_Single {
 		}
 
 		echo self::render_amenities( $post_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-
-		if ( $website ) {
-			echo '<p><a class="ash-single-page__cta" href="' . esc_url( $website ) . '" target="_blank" rel="noopener">' . esc_html__( 'Event Details & Registration', 'ashford-events' ) . '</a></p>';
-		}
 
 		if ( $date ) {
 			$ics = add_query_arg( array( 'ash_ical' => '1', 'event' => $post_id ), home_url( '/' ) );
@@ -180,7 +175,6 @@ class Ash_Events_Single {
 		ob_start();
 		?>
 		<section class="ash-single-page__amenities">
-			<h2 class="ash-single-page__amenities-heading"><?php esc_html_e( 'What this event includes', 'ashford-events' ); ?></h2>
 			<ul class="ash-single-page__amenity-list">
 				<?php foreach ( $rows as $row ) : ?>
 					<li class="ash-single-page__amenity">
@@ -285,7 +279,7 @@ class Ash_Events_Single {
 	}
 
 	/** Upcoming events in the same category (fallback: any upcoming), excluding the current one. Only events with a featured image. */
-	public static function related( $post_id, $limit = 3 ) {
+	public static function related( $post_id, $limit = 5 ) {
 		$today = current_time( 'Y-m-d' );
 		$args  = array(
 			'post_type'      => 'ash_event',

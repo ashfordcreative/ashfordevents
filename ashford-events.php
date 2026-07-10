@@ -3,7 +3,7 @@
  * Plugin Name:       Ashford Events
  * Plugin URI:        https://ashfordcreative.com
  * Description:       Lightweight events calendar with month/list views, per-event colors and labels, single event pages, CSV import, iCal feeds, and one-click migration from The Events Calendar.
- * Version:           1.3.4
+ * Version:           1.3.5
  * Author:            Ashford Creative
  * License:           GPL-2.0-or-later
  * Text Domain:       ashford-events
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ASH_EVENTS_VERSION', '1.3.4' );
+define( 'ASH_EVENTS_VERSION', '1.3.5' );
 define( 'ASH_EVENTS_FILE', __FILE__ );
 define( 'ASH_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ASH_EVENTS_URL', plugin_dir_url( __FILE__ ) );
@@ -142,6 +142,20 @@ function ash_events_text_color( $post_id ) {
 register_activation_hook( __FILE__, function () {
 	Ash_Events_CPT::register();
 	flush_rewrite_rules();
+	update_option( 'ash_events_rewrite_version', ASH_EVENTS_VERSION );
 } );
 
 register_deactivation_hook( __FILE__, 'flush_rewrite_rules' );
+
+/**
+ * Re-flush rewrite rules after plugin updates.
+ * Zip/GitHub updates often skip the activation hook, which leaves /event/ URLs 404ing.
+ */
+add_action( 'init', function () {
+	if ( get_option( 'ash_events_rewrite_version' ) === ASH_EVENTS_VERSION ) {
+		return;
+	}
+	Ash_Events_CPT::register();
+	flush_rewrite_rules( false );
+	update_option( 'ash_events_rewrite_version', ASH_EVENTS_VERSION );
+}, 20 );

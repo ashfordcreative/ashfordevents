@@ -230,7 +230,7 @@ class Ash_Events_Views {
 
 	private static function render_card( $event, $show_label = false, $popover = false ) {
 		$color = ash_events_color( $event->ID );
-		$text  = ash_events_text_on( $color );
+		$text  = ash_events_text_color( $event->ID );
 		$time  = get_post_meta( $event->ID, '_ash_start_time', true );
 		$date  = get_post_meta( $event->ID, '_ash_start_date', true );
 		$time_display = $time ? date_i18n( 'g:i a', strtotime( $date . ' ' . $time ) ) : __( 'Time TBD', 'ashford-events' );

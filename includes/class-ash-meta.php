@@ -23,8 +23,13 @@ class Ash_Events_Meta {
 
 	public static function admin_assets( $hook ) {
 		$screen = get_current_screen();
-		$needs  = $screen && ( 'ash_event' === $screen->post_type );
-		if ( ! $needs ) {
+		if ( ! $screen ) {
+			return;
+		}
+		$needs_post = ( 'ash_event' === $screen->post_type );
+		$needs_tax  = in_array( $screen->id, array( 'edit-ash_event_cat', 'ash_event_cat' ), true )
+			|| ( ! empty( $screen->taxonomy ) && 'ash_event_cat' === $screen->taxonomy );
+		if ( ! $needs_post && ! $needs_tax ) {
 			return;
 		}
 		wp_enqueue_style( 'wp-color-picker' );
@@ -127,7 +132,7 @@ class Ash_Events_Meta {
 		update_post_meta( $post_id, '_ash_color', $color ? $color : '' );
 	}
 
-	/* ---- Category color term meta ---- */
+	/* ---- Category color / text color term meta ---- */
 
 	public static function term_add_field() {
 		wp_nonce_field( 'ash_term_meta', 'ash_term_meta_nonce' );
@@ -137,18 +142,31 @@ class Ash_Events_Meta {
 			<input type="text" id="ash_term_color" name="ash_term_color" class="ash-color-field" value="">
 			<p><?php esc_html_e( 'Default accent color for events in this category.', 'ashford-events' ); ?></p>
 		</div>
+		<div class="form-field">
+			<label for="ash_term_text_color"><?php esc_html_e( 'Text color', 'ashford-events' ); ?></label>
+			<input type="text" id="ash_term_text_color" name="ash_term_text_color" class="ash-color-field" value="">
+			<p><?php esc_html_e( 'Text on event cards for this category. Leave empty to auto-pick black or white.', 'ashford-events' ); ?></p>
+		</div>
 		<?php
 	}
 
 	public static function term_edit_field( $term ) {
 		wp_nonce_field( 'ash_term_meta', 'ash_term_meta_nonce' );
 		$color = get_term_meta( $term->term_id, 'ash_color', true );
+		$text  = get_term_meta( $term->term_id, 'ash_text_color', true );
 		?>
 		<tr class="form-field">
 			<th scope="row"><label for="ash_term_color"><?php esc_html_e( 'Category color', 'ashford-events' ); ?></label></th>
 			<td>
 				<input type="text" id="ash_term_color" name="ash_term_color" class="ash-color-field" value="<?php echo esc_attr( $color ); ?>">
 				<p class="description"><?php esc_html_e( 'Default accent color for events in this category.', 'ashford-events' ); ?></p>
+			</td>
+		</tr>
+		<tr class="form-field">
+			<th scope="row"><label for="ash_term_text_color"><?php esc_html_e( 'Text color', 'ashford-events' ); ?></label></th>
+			<td>
+				<input type="text" id="ash_term_text_color" name="ash_term_text_color" class="ash-color-field" value="<?php echo esc_attr( $text ); ?>">
+				<p class="description"><?php esc_html_e( 'Text on event cards for this category. Leave empty to auto-pick black or white.', 'ashford-events' ); ?></p>
 			</td>
 		</tr>
 		<?php
@@ -163,6 +181,13 @@ class Ash_Events_Meta {
 			update_term_meta( $term_id, 'ash_color', $color );
 		} else {
 			delete_term_meta( $term_id, 'ash_color' );
+		}
+
+		$text = isset( $_POST['ash_term_text_color'] ) ? sanitize_hex_color( wp_unslash( $_POST['ash_term_text_color'] ) ) : '';
+		if ( $text ) {
+			update_term_meta( $term_id, 'ash_text_color', $text );
+		} else {
+			delete_term_meta( $term_id, 'ash_text_color' );
 		}
 	}
 }

@@ -122,6 +122,23 @@ function ash_events_text_on( $hex ) {
 	return $luminance > 0.55 ? '#1B1B1B' : '#FFFFFF';
 }
 
+/**
+ * Resolve text color for an event card / CTA.
+ * Priority: first category ash_text_color -> auto contrast from background.
+ */
+function ash_events_text_color( $post_id ) {
+	$terms = get_the_terms( $post_id, 'ash_event_cat' );
+	if ( $terms && ! is_wp_error( $terms ) ) {
+		foreach ( $terms as $term ) {
+			$text = get_term_meta( $term->term_id, 'ash_text_color', true );
+			if ( $text ) {
+				return $text;
+			}
+		}
+	}
+	return ash_events_text_on( ash_events_color( $post_id ) );
+}
+
 register_activation_hook( __FILE__, function () {
 	Ash_Events_CPT::register();
 	flush_rewrite_rules();

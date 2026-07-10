@@ -376,32 +376,6 @@
 	color: var(--ash-muted);
 }
 
-/* ---- Subscribe row ---- */
-.ash-cal__subscribe {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px 18px;
-	margin-top: 18px;
-	font-size: 0.8em;
-}
-.ash-cal__subscribe-label {
-	color: var(--ash-muted);
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	font-size: 0.9em;
-}
-.ash-cal__subscribe a {
-	color: var(--ash-text);
-	text-decoration: underline;
-	text-underline-offset: 2px;
-	text-decoration-color: #CFCFCA;
-}
-.ash-cal__subscribe a:hover,
-.ash-cal__subscribe a:focus-visible {
-	text-decoration-color: var(--ash-accent);
-	color: var(--ash-text);
-}
-
 /* ---- Mobile: grid collapses to list ---- */
 .ash-cal__mobile-list {
 	display: none;

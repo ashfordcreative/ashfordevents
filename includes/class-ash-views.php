@@ -86,7 +86,6 @@ class Ash_Events_Views {
 			<div class="ash-cal__body" aria-live="polite">
 				<?php echo self::render_body( $month, $view, $category, (int) $atts['months'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
-			<?php self::render_subscribe(); ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -306,19 +305,5 @@ class Ash_Events_Views {
 			echo '</div></div>';
 		}
 		echo '</div>';
-	}
-
-	private static function render_subscribe() {
-		$ics    = add_query_arg( 'ash_ical', '1', home_url( '/' ) );
-		$webcal = preg_replace( '#^https?#', 'webcal', $ics );
-		$google = 'https://www.google.com/calendar/render?cid=' . rawurlencode( $webcal );
-		?>
-		<div class="ash-cal__subscribe">
-			<span class="ash-cal__subscribe-label"><?php esc_html_e( 'Subscribe:', 'ashford-events' ); ?></span>
-			<a href="<?php echo esc_url( $google ); ?>" target="_blank" rel="noopener nofollow"><?php esc_html_e( 'Google Calendar', 'ashford-events' ); ?></a>
-			<a href="<?php echo esc_url( $webcal ); ?>" rel="nofollow"><?php esc_html_e( 'Apple / Outlook', 'ashford-events' ); ?></a>
-			<a href="<?php echo esc_url( $ics ); ?>" rel="nofollow"><?php esc_html_e( 'Download .ics', 'ashford-events' ); ?></a>
-		</div>
-		<?php
 	}
 }

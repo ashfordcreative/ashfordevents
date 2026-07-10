@@ -99,7 +99,7 @@ class Ash_Events_Views {
 			$events = Ash_Events_Query::between( $first, $to, $category );
 			self::render_list( $events );
 		} else {
-			$start_of_week = (int) get_option( 'start_of_week', 1 );
+			$start_of_week = 0; // Sunday
 			$grid_start    = self::grid_start( $first, $start_of_week );
 			$grid_end      = gmdate( 'Y-m-d', strtotime( $grid_start . ' +41 days' ) );
 			$events        = Ash_Events_Query::between( $grid_start, $grid_end, $category );
@@ -176,7 +176,7 @@ class Ash_Events_Views {
 		<label class="ash-cal__filter">
 			<span class="ash-cal__filter-dot" style="background:<?php echo esc_attr( $active_color ); ?>" aria-hidden="true"></span>
 			<span class="screen-reader-text"><?php esc_html_e( 'Filter by category', 'ashford-events' ); ?></span>
-			<select data-ash-filter>
+			<select class="ash-cal__filter-select" data-ash-filter>
 				<option value="" data-color="<?php echo esc_attr( $default ); ?>"><?php esc_html_e( 'All Events', 'ashford-events' ); ?></option>
 				<?php foreach ( $terms as $term ) :
 					$c = get_term_meta( $term->term_id, 'ash_color', true );
@@ -198,7 +198,7 @@ class Ash_Events_Views {
 		echo '<div class="ash-cal__weekdays" role="row">';
 		for ( $i = 0; $i < 7; $i++ ) {
 			$day_index = ( $start_of_week + $i ) % 7;
-			echo '<div class="ash-cal__weekday" role="columnheader">' . esc_html( $wp_locale->get_weekday_initial( $wp_locale->get_weekday( $day_index ) ) ) . '</div>';
+			echo '<div class="ash-cal__weekday" role="columnheader">' . esc_html( $wp_locale->get_weekday_abbrev( $wp_locale->get_weekday( $day_index ) ) ) . '</div>';
 		}
 		echo '</div>';
 

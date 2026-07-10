@@ -186,10 +186,10 @@ class Ash_Events_Importer {
 					</td>
 				</tr>
 				<tr>
-					<th scope="row"><label for="ash_calendar_url"><?php esc_html_e( 'Calendar page URL', 'ashford-events' ); ?></label></th>
+					<th scope="row"><label for="ash_calendar_url"><?php esc_html_e( 'All Events URL', 'ashford-events' ); ?></label></th>
 					<td>
-						<input type="url" id="ash_calendar_url" name="ash_calendar_url" class="regular-text" value="<?php echo esc_attr( $cal_url ); ?>" placeholder="<?php echo esc_attr( home_url( '/poker-room/' ) ); ?>">
-						<p class="description"><?php esc_html_e( 'The page containing your [ashford_events] shortcode. Used for the "« All Events" link on single event pages.', 'ashford-events' ); ?></p>
+						<input type="url" id="ash_calendar_url" name="ash_calendar_url" class="regular-text" value="<?php echo esc_attr( $cal_url ); ?>" placeholder="<?php echo esc_attr( home_url( '/events/' ) ); ?>">
+						<p class="description"><?php esc_html_e( 'URL for the "« All Events" back link on single event pages. Usually the page with the [ashford_events] shortcode.', 'ashford-events' ); ?></p>
 					</td>
 				</tr>
 			</table>

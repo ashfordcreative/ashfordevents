@@ -3,7 +3,7 @@
  * Plugin Name:       Ashford Events
  * Plugin URI:        https://ashfordcreative.com
  * Description:       Lightweight events calendar with month/list views, per-event colors and labels, single event pages, CSV import, iCal feeds, and one-click migration from The Events Calendar.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Author:            Ashford Creative
  * License:           GPL-2.0-or-later
  * Text Domain:       ashford-events
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ASH_EVENTS_VERSION', '1.2.0' );
+define( 'ASH_EVENTS_VERSION', '1.3.0' );
 define( 'ASH_EVENTS_FILE', __FILE__ );
 define( 'ASH_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ASH_EVENTS_URL', plugin_dir_url( __FILE__ ) );
@@ -36,6 +36,35 @@ Ash_Events_Single::init();
 Ash_Events_Ical::init();
 Ash_Events_Importer::init();
 Ash_Events_Migrate::init();
+
+/*
+ * GitHub-powered updates.
+ *
+ * Sites check the GitHub repo for new releases and surface them as normal
+ * WordPress plugin updates (visible in wp-admin and ManageWP).
+ *
+ * Set the repo below (or define ASH_EVENTS_GITHUB_REPO in wp-config.php).
+ * For a private repo, define ASH_EVENTS_GITHUB_TOKEN with a read-only
+ * fine-grained personal access token.
+ */
+if ( file_exists( ASH_EVENTS_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php' ) ) {
+	require_once ASH_EVENTS_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+
+	$ash_events_repo = defined( 'ASH_EVENTS_GITHUB_REPO' )
+		? ASH_EVENTS_GITHUB_REPO
+		: 'https://github.com/ashfordcreative/ashfordevents/';
+
+	$ash_events_updates = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+		$ash_events_repo,
+		ASH_EVENTS_FILE,
+		'ashford-events'
+	);
+	$ash_events_updates->getVcsApi()->enableReleaseAssets();
+
+	if ( defined( 'ASH_EVENTS_GITHUB_TOKEN' ) && ASH_EVENTS_GITHUB_TOKEN ) {
+		$ash_events_updates->setAuthentication( ASH_EVENTS_GITHUB_TOKEN );
+	}
+}
 
 /**
  * Resolve the accent color for an event.

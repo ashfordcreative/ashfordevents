@@ -63,6 +63,9 @@ class Ash_Events_Views {
 			'months'   => 1,
 		), $atts, 'ashford_events' );
 		$view = 'list' === $atts['view'] ? 'list' : 'month';
+		if ( isset( $_GET['ash_view'] ) && in_array( sanitize_key( wp_unslash( $_GET['ash_view'] ) ), array( 'month', 'list' ), true ) ) {
+			$view = sanitize_key( wp_unslash( $_GET['ash_view'] ) );
+		}
 
 		$month = isset( $_GET['ash_month'] ) ? sanitize_text_field( wp_unslash( $_GET['ash_month'] ) ) : '';
 		if ( ! preg_match( '/^\d{4}-(0[1-9]|1[0-2])$/', $month ) ) {
@@ -82,7 +85,7 @@ class Ash_Events_Views {
 			data-category="<?php echo esc_attr( $category ); ?>"
 			data-months="<?php echo esc_attr( max( 1, (int) $atts['months'] ) ); ?>"
 			data-endpoint="<?php echo esc_url( rest_url( 'ash-events/v1/calendar' ) ); ?>">
-			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null ); ?>
+			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null, $view ); ?>
 			<div class="ash-cal__body" aria-live="polite">
 				<?php echo self::render_body( $month, $view, $category, (int) $atts['months'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
@@ -101,8 +104,11 @@ class Ash_Events_Views {
 
 		ob_start();
 		if ( 'list' === $view ) {
-			$to     = gmdate( 'Y-m-t', strtotime( $first . ' +' . ( $months - 1 ) . ' months' ) );
-			$events = Ash_Events_Query::between( $first, $to, $category );
+			$current_month = current_time( 'Y-m' );
+			$today         = current_time( 'Y-m-d' );
+			$from          = ( $month === $current_month ) ? $today : $first;
+			$to            = gmdate( 'Y-m-t', strtotime( $first . ' +' . ( $months - 1 ) . ' months' ) );
+			$events        = Ash_Events_Query::between( $from, $to, $category );
 			self::render_list( $events );
 		} else {
 			$today         = current_time( 'Y-m-d' );
@@ -150,12 +156,13 @@ class Ash_Events_Views {
 	 * @param string      $month           Y-m
 	 * @param string|null $active_category Slug of active category filter, or null to hide the filter
 	 *                                     (used when the shortcode locks a category).
+	 * @param string      $view            month|list
 	 */
-	private static function render_nav( $month, $active_category ) {
+	private static function render_nav( $month, $active_category, $view = 'month' ) {
 		$prev = gmdate( 'Y-m', strtotime( $month . '-01 -1 month' ) );
 		$next = gmdate( 'Y-m', strtotime( $month . '-01 +1 month' ) );
 		$now  = current_time( 'Y-m' );
-		$base = remove_query_arg( array( 'ash_month', 'ash_cat' ) );
+		$base = remove_query_arg( array( 'ash_month', 'ash_cat', 'ash_view' ) );
 
 		$chev_left  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
 		$chev_right = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
@@ -167,9 +174,15 @@ class Ash_Events_Views {
 				<a class="ash-cal__today" data-ash-nav="today" href="<?php echo esc_url( add_query_arg( 'ash_month', $now, $base ) ); ?>" rel="nofollow"><?php esc_html_e( 'This Month', 'ashford-events' ); ?></a>
 				<h2 class="ash-cal__title"><?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?></h2>
 			</div>
-			<?php if ( null !== $active_category ) : ?>
-				<?php self::render_category_filter( $active_category ); ?>
-			<?php endif; ?>
+			<div class="ash-cal__nav-right">
+				<div class="ash-cal__views" role="group" aria-label="<?php esc_attr_e( 'Calendar view', 'ashford-events' ); ?>">
+					<button type="button" class="ash-cal__view-btn<?php echo 'month' === $view ? ' is-active' : ''; ?>" data-ash-view="month"><?php esc_html_e( 'Month', 'ashford-events' ); ?></button>
+					<button type="button" class="ash-cal__view-btn<?php echo 'list' === $view ? ' is-active' : ''; ?>" data-ash-view="list"><?php esc_html_e( 'List', 'ashford-events' ); ?></button>
+				</div>
+				<?php if ( null !== $active_category ) : ?>
+					<?php self::render_category_filter( $active_category ); ?>
+				<?php endif; ?>
+			</div>
 		</div>
 		<?php
 	}

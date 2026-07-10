@@ -50,6 +50,44 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	flex-wrap: wrap;
+}
+.ash-cal__nav-right {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-left: auto;
+}
+.ash-cal__views {
+	display: inline-flex;
+	align-items: center;
+	padding: 3px;
+	border: 1px solid #E2E2DE;
+	border-radius: 10px;
+	background: #fff;
+	gap: 2px;
+}
+.ash-cal__view-btn {
+	appearance: none;
+	border: 0;
+	background: transparent;
+	color: var(--ash-text);
+	font: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	padding: 7px 12px;
+	border-radius: 7px;
+	cursor: pointer;
+	line-height: 1.2;
+}
+.ash-cal__view-btn:hover,
+.ash-cal__view-btn:focus-visible {
+	background: var(--ash-cell);
+}
+.ash-cal__view-btn.is-active {
+	background: var(--ash-text);
+	color: #fff;
 }
 .ash-cal__chev {
 	display: inline-flex;
@@ -252,9 +290,20 @@
 .ash-cal__pop {
 	display: none;
 }
+.ash-cal__grid,
+.ash-cal__week,
+.ash-cal__day,
+.ash-cal__cards {
+	overflow: visible;
+}
 @media (hover: hover) and (pointer: fine) {
 	.ash-cal__card {
 		position: relative;
+		z-index: 1;
+	}
+	.ash-cal__card:hover,
+	.ash-cal__card:focus-visible {
+		z-index: 5;
 	}
 	.ash-cal__pop {
 		display: block;
@@ -263,39 +312,30 @@
 		left: 50%;
 		transform: translateX(-50%);
 		width: 280px;
+		max-width: calc(100vw - 24px);
 		background: #fff;
 		color: #1B1B1B;
 		border-radius: 12px;
-		box-shadow: 0 14px 44px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 14px 44px rgba(0, 0, 0, 0.22);
+		border: 1px solid #ECECE8;
 		padding: 16px;
 		opacity: 0;
 		visibility: hidden;
-		transition: opacity 0.12s ease 0.15s, visibility 0.12s ease 0.15s;
-		z-index: 40;
+		transition: opacity 0.12s ease, visibility 0.12s ease;
+		z-index: 10000;
 		pointer-events: none;
 		text-align: left;
+		box-sizing: border-box;
 	}
-	.ash-cal__card:hover,
-	.ash-cal__card:focus-visible {
-		z-index: 50;
+	.ash-cal__pop.is-pop-fixed {
+		position: fixed;
+		bottom: auto;
+		right: auto;
+		transform: none;
 	}
-	.ash-cal__card:hover .ash-cal__pop,
-	.ash-cal__card:focus-visible .ash-cal__pop {
+	.ash-cal__pop.is-visible {
 		opacity: 1;
 		visibility: visible;
-	}
-	.ash-cal__pop.is-pop-left {
-		left: 0;
-		transform: none;
-	}
-	.ash-cal__pop.is-pop-right {
-		left: auto;
-		right: 0;
-		transform: none;
-	}
-	.ash-cal__pop.is-pop-below {
-		bottom: auto;
-		top: calc(100% + 10px);
 	}
 	.ash-cal__pop-img {
 		display: block;
@@ -318,6 +358,7 @@
 		font-size: 0.95em;
 		font-weight: 700;
 		line-height: 1.25;
+		color: #1B1B1B;
 	}
 	.ash-cal__pop-label {
 		display: block;
@@ -328,24 +369,36 @@
 }
 
 /* ---- List view ---- */
+.ash-cal__list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
 .ash-cal__list-day {
-	padding: 16px 0;
+	padding: 18px 0;
 	border-bottom: 1px solid #ECECE8;
 }
 .ash-cal__list-day:last-child {
 	border-bottom: 0;
 }
 .ash-cal__list-date {
-	margin: 0 0 10px;
-	font-size: 0.95em;
+	margin: 0 0 12px;
+	font-size: 15px;
 	font-weight: 700;
 	color: var(--ash-text);
+	letter-spacing: -0.01em;
+}
+.ash-cal__list .ash-cal__cards {
+	gap: 10px;
 }
 .ash-cal__list .ash-cal__card {
 	padding: 14px 18px;
 }
 .ash-cal__list .ash-cal__card-title {
-	font-size: 14px;
+	font-size: 15px;
+}
+.ash-cal__list .ash-cal__card-time {
+	font-size: 13px;
 }
 .ash-cal__empty {
 	padding: 28px 0;

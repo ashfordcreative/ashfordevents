@@ -248,8 +248,11 @@ class Ash_Events_Single {
 		if ( $url ) {
 			return $url;
 		}
-		$archive = get_post_type_archive_link( 'ash_event' );
-		return $archive ? $archive : home_url( '/' );
+		$page = get_page_by_path( 'events' );
+		if ( $page instanceof WP_Post ) {
+			return get_permalink( $page );
+		}
+		return home_url( '/' );
 	}
 
 	/** Google Calendar "add event" template link. */

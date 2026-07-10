@@ -24,7 +24,7 @@ class Ash_Events_CPT {
 			'menu_icon'    => 'dashicons-calendar-alt',
 			'menu_position'=> 21,
 			'supports'     => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
-			'has_archive'  => 'events',
+			'has_archive'  => false,
 			'rewrite'      => array( 'slug' => 'event', 'with_front' => false ),
 			'show_in_rest' => true,
 		) );
@@ -36,7 +36,7 @@ class Ash_Events_CPT {
 			),
 			'hierarchical' => true,
 			'public'       => true,
-			'rewrite'      => array( 'slug' => 'events/category', 'with_front' => false ),
+			'rewrite'      => array( 'slug' => 'event-category', 'with_front' => false ),
 			'show_in_rest' => true,
 		) );
 	}

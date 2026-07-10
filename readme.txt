@@ -4,7 +4,7 @@ Tags: events, calendar, csv import
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.4.5
+Stable tag: 1.4.6
 License: GPL-2.0-or-later
 
 Lightweight events calendar: month/list views, per-event colors and labels, single event pages, CSV import with preview, iCal feeds, and one-click migration from The Events Calendar.
@@ -12,7 +12,7 @@ Lightweight events calendar: month/list views, per-event colors and labels, sing
 == Usage ==
 
 1. Activate the plugin, then visit Settings > Permalinks once (or just activate — rewrites are flushed automatically).
-2. Add the calendar to any page with the shortcode:
+2. Create a normal WordPress Page (e.g. /events/) and add the calendar shortcode. The plugin does not take over /events/ — single events live at /event/slug/.
 
    [ashford_events]                        Month grid (collapses to a list on mobile)
    [ashford_events view="list"]            List view

@@ -1,4 +1,4 @@
-/* Ashford Events — in-place month navigation, view toggle & category filter */
+/* Ashford Events — navigation, view toggle, category filter, hover popovers */
 ( function () {
 	'use strict';
 
@@ -8,80 +8,15 @@
 		return d.getFullYear() + '-' + String( d.getMonth() + 1 ).padStart( 2, '0' );
 	}
 
-	function positionPopover( card, pop ) {
-		pop.classList.remove( 'is-pop-left', 'is-pop-right', 'is-pop-below', 'is-pop-fixed' );
-		pop.style.top = '';
-		pop.style.left = '';
-		pop.style.right = '';
-		pop.style.bottom = '';
-		pop.style.transform = '';
-
-		// Measure with temporary visibility so size is accurate.
-		pop.style.opacity = '0';
-		pop.style.visibility = 'hidden';
-		pop.style.display = 'block';
-		pop.classList.add( 'is-pop-fixed' );
-
-		var cardRect = card.getBoundingClientRect();
-		var popRect  = pop.getBoundingClientRect();
-		var gap      = 10;
-		var pad      = 12;
-		var headerClearance = 96; // clear sticky site headers
-		var spaceAbove = cardRect.top - headerClearance;
-		var placeBelow = spaceAbove < popRect.height + gap;
-
-		var top;
-		if ( placeBelow ) {
-			top = cardRect.bottom + gap;
-			pop.classList.add( 'is-pop-below' );
-		} else {
-			top = cardRect.top - popRect.height - gap;
-		}
-
-		var left = cardRect.left + ( cardRect.width / 2 ) - ( popRect.width / 2 );
-		if ( left < pad ) {
-			left = pad;
-			pop.classList.add( 'is-pop-left' );
-		} else if ( left + popRect.width > window.innerWidth - pad ) {
-			left = window.innerWidth - pad - popRect.width;
-			pop.classList.add( 'is-pop-right' );
-		}
-
-		// Keep within viewport vertically.
-		if ( top < pad ) {
-			top = pad;
-		} else if ( top + popRect.height > window.innerHeight - pad ) {
-			top = Math.max( pad, window.innerHeight - pad - popRect.height );
-		}
-
-		pop.style.top = Math.round( top ) + 'px';
-		pop.style.left = Math.round( left ) + 'px';
-		pop.style.opacity = '';
-		pop.style.visibility = '';
-	}
-
-	function hidePopover( pop ) {
-		if ( ! pop ) {
-			return;
-		}
-		pop.classList.remove( 'is-visible', 'is-pop-fixed', 'is-pop-left', 'is-pop-right', 'is-pop-below' );
-		pop.style.top = '';
-		pop.style.left = '';
-		pop.style.right = '';
-		pop.style.bottom = '';
-		pop.style.transform = '';
-		pop.style.opacity = '';
-		pop.style.visibility = '';
-		pop.style.display = '';
-	}
-
 	function initCalendar( root ) {
 		var body     = root.querySelector( '.ash-cal__body' );
 		var title    = root.querySelector( '.ash-cal__title' );
 		var filter   = root.querySelector( '[data-ash-filter]' );
 		var dot      = root.querySelector( '.ash-cal__filter-dot' );
 		var endpoint = root.dataset.endpoint;
+		var activeCard = null;
 		var activePop = null;
+		var hideTimer = null;
 		if ( ! body || ! endpoint ) {
 			return;
 		}
@@ -92,9 +27,113 @@
 			} );
 		}
 
-		function load( month, pushHistory ) {
-			hidePopover( activePop );
+		function clearHideTimer() {
+			if ( hideTimer ) {
+				window.clearTimeout( hideTimer );
+				hideTimer = null;
+			}
+		}
+
+		function restorePopover( pop ) {
+			if ( ! pop || ! pop._ashHome ) {
+				return;
+			}
+			pop.classList.remove( 'is-visible', 'is-portal' );
+			pop.style.top = '';
+			pop.style.left = '';
+			pop.style.right = '';
+			pop.style.bottom = '';
+			pop.style.transform = '';
+			pop.style.opacity = '';
+			pop.style.visibility = '';
+			pop.style.display = '';
+			if ( pop.parentNode === document.body ) {
+				pop._ashHome.appendChild( pop );
+			}
+			pop._ashHome = null;
+		}
+
+		function hideActivePopover() {
+			clearHideTimer();
+			if ( activePop ) {
+				restorePopover( activePop );
+			}
 			activePop = null;
+			activeCard = null;
+		}
+
+		function positionPortal( card, pop ) {
+			var cardRect = card.getBoundingClientRect();
+			var gap = 10;
+			var pad = 12;
+			var headerClearance = 100;
+
+			if ( ! pop._ashHome ) {
+				pop._ashHome = pop.parentNode;
+			}
+			if ( pop.parentNode !== document.body ) {
+				document.body.appendChild( pop );
+			}
+
+			pop.classList.add( 'is-portal' );
+			pop.style.display = 'block';
+			pop.style.visibility = 'hidden';
+			pop.style.opacity = '0';
+			pop.style.top = '0px';
+			pop.style.left = '0px';
+
+			var popRect = pop.getBoundingClientRect();
+			var placeBelow = ( cardRect.top - headerClearance ) < ( popRect.height + gap );
+
+			var top = placeBelow
+				? cardRect.bottom + gap
+				: cardRect.top - popRect.height - gap;
+
+			var left = cardRect.left + ( cardRect.width / 2 ) - ( popRect.width / 2 );
+			if ( left < pad ) {
+				left = pad;
+			} else if ( left + popRect.width > window.innerWidth - pad ) {
+				left = window.innerWidth - pad - popRect.width;
+			}
+
+			if ( top < pad ) {
+				top = pad;
+			} else if ( top + popRect.height > window.innerHeight - pad ) {
+				top = Math.max( pad, window.innerHeight - pad - popRect.height );
+			}
+
+			pop.style.top = Math.round( top ) + 'px';
+			pop.style.left = Math.round( left ) + 'px';
+			pop.style.visibility = '';
+			pop.style.opacity = '';
+			pop.classList.add( 'is-visible' );
+		}
+
+		function showPopover( card ) {
+			var pop = card.querySelector( '.ash-cal__pop' );
+			if ( ! pop ) {
+				return;
+			}
+			clearHideTimer();
+			if ( activePop && activePop !== pop ) {
+				restorePopover( activePop );
+			}
+			activeCard = card;
+			activePop = pop;
+			positionPortal( card, pop );
+		}
+
+		function scheduleHide( card ) {
+			clearHideTimer();
+			hideTimer = window.setTimeout( function () {
+				if ( activeCard === card ) {
+					hideActivePopover();
+				}
+			}, 80 );
+		}
+
+		function load( month, pushHistory ) {
+			hideActivePopover();
 
 			var params = new URLSearchParams( {
 				month:    month,
@@ -190,19 +229,10 @@
 
 		root.addEventListener( 'mouseover', function ( e ) {
 			var card = e.target.closest( '.ash-cal__card' );
-			if ( ! card || ! root.contains( card ) ) {
+			if ( ! card || ! root.contains( card ) || ! card.querySelector( '.ash-cal__pop' ) ) {
 				return;
 			}
-			var pop = card.querySelector( '.ash-cal__pop' );
-			if ( ! pop ) {
-				return;
-			}
-			if ( activePop && activePop !== pop ) {
-				hidePopover( activePop );
-			}
-			activePop = pop;
-			positionPopover( card, pop );
-			pop.classList.add( 'is-visible' );
+			showPopover( card );
 		} );
 
 		root.addEventListener( 'mouseout', function ( e ) {
@@ -211,29 +241,34 @@
 				return;
 			}
 			var related = e.relatedTarget;
-			if ( related && card.contains( related ) ) {
+			if ( related && ( card.contains( related ) || ( activePop && activePop.contains( related ) ) ) ) {
 				return;
 			}
-			var pop = card.querySelector( '.ash-cal__pop' );
-			hidePopover( pop );
-			if ( activePop === pop ) {
-				activePop = null;
+			scheduleHide( card );
+		} );
+
+		document.addEventListener( 'mouseover', function ( e ) {
+			if ( activePop && activePop.contains( e.target ) ) {
+				clearHideTimer();
 			}
 		} );
 
-		window.addEventListener( 'scroll', function () {
-			if ( activePop ) {
-				hidePopover( activePop );
-				activePop = null;
+		document.addEventListener( 'mouseout', function ( e ) {
+			if ( ! activePop || ! activeCard ) {
+				return;
 			}
-		}, true );
-
-		window.addEventListener( 'resize', function () {
-			if ( activePop ) {
-				hidePopover( activePop );
-				activePop = null;
+			if ( ! activePop.contains( e.target ) ) {
+				return;
 			}
+			var related = e.relatedTarget;
+			if ( related && ( activePop.contains( related ) || activeCard.contains( related ) ) ) {
+				return;
+			}
+			scheduleHide( activeCard );
 		} );
+
+		window.addEventListener( 'scroll', hideActivePopover, true );
+		window.addEventListener( 'resize', hideActivePopover );
 
 		window.addEventListener( 'popstate', function () {
 			var url   = new URL( window.location.href );

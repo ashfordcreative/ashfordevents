@@ -62,24 +62,29 @@
 .ash-cal__views {
 	display: inline-flex;
 	align-items: center;
-	padding: 3px;
+	padding: 2px;
 	border: 1px solid #E2E2DE;
-	border-radius: 10px;
+	border-radius: 8px;
 	background: #fff;
-	gap: 2px;
+	gap: 1px;
 }
 .ash-cal__view-btn {
 	appearance: none;
 	border: 0;
 	background: transparent;
 	color: var(--ash-text);
-	font: inherit;
-	font-size: 13px;
-	font-weight: 600;
-	padding: 7px 12px;
-	border-radius: 7px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border-radius: 6px;
 	cursor: pointer;
-	line-height: 1.2;
+	line-height: 0;
+}
+.ash-cal__view-btn svg {
+	display: block;
 }
 .ash-cal__view-btn:hover,
 .ash-cal__view-btn:focus-visible {
@@ -256,7 +261,6 @@
 .ash-cal a.ash-cal__card:hover,
 .ash-cal a.ash-cal__card:focus-visible {
 	filter: brightness(1.05);
-	transform: translateY(-1px);
 }
 .ash-cal__card-time,
 .ash-cal__card-title,
@@ -305,7 +309,8 @@
 	.ash-cal__card:focus-visible {
 		z-index: 5;
 	}
-	.ash-cal__pop {
+	.ash-cal__pop,
+	.ash-cal__pop.is-portal {
 		display: block;
 		position: absolute;
 		bottom: calc(100% + 10px);
@@ -316,22 +321,23 @@
 		background: #fff;
 		color: #1B1B1B;
 		border-radius: 12px;
-		box-shadow: 0 14px 44px rgba(0, 0, 0, 0.22);
+		box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
 		border: 1px solid #ECECE8;
 		padding: 16px;
 		opacity: 0;
 		visibility: hidden;
 		transition: opacity 0.12s ease, visibility 0.12s ease;
-		z-index: 10000;
+		z-index: 2147483000;
 		pointer-events: none;
 		text-align: left;
 		box-sizing: border-box;
 	}
-	.ash-cal__pop.is-pop-fixed {
+	.ash-cal__pop.is-portal {
 		position: fixed;
 		bottom: auto;
 		right: auto;
 		transform: none;
+		pointer-events: auto;
 	}
 	.ash-cal__pop.is-visible {
 		opacity: 1;

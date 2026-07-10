@@ -61,6 +61,16 @@ class Ash_Events_Query {
 	}
 
 	/**
+	 * Upcoming events from today forward (for list view).
+	 *
+	 * @param string $category Optional category slug.
+	 * @return WP_Post[]
+	 */
+	public static function upcoming( $category = '' ) {
+		return self::between( current_time( 'Y-m-d' ), '2099-12-31', $category );
+	}
+
+	/**
 	 * Group events by their Y-m-d start date.
 	 *
 	 * @param WP_Post[] $posts

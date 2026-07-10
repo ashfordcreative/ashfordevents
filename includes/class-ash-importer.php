@@ -74,9 +74,10 @@ class Ash_Events_Importer {
 			'no_rows'       => __( 'No importable rows were found in that file.', 'ashford-events' ),
 			'settings'      => __( 'Settings saved.', 'ashford-events' ),
 			'migrate_done'  => sprintf(
-				/* translators: 1: migrated count, 2: skipped count */
-				__( 'Migration complete: %1$d events migrated, %2$d skipped (already exist).', 'ashford-events' ),
+				/* translators: 1: newly migrated count, 2: updated count, 3: skipped count */
+				__( 'Migration complete: %1$d created, %2$d updated, %3$d skipped.', 'ashford-events' ),
 				isset( $_GET['migrated'] ) ? absint( $_GET['migrated'] ) : 0,
+				isset( $_GET['updated'] ) ? absint( $_GET['updated'] ) : 0,
 				isset( $_GET['skipped'] ) ? absint( $_GET['skipped'] ) : 0
 			),
 			'migrate_none'  => __( 'No events from The Events Calendar were found.', 'ashford-events' ),

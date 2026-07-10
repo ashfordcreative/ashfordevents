@@ -4,7 +4,7 @@ Tags: events, calendar, csv import
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.4.6
+Stable tag: 1.4.7
 License: GPL-2.0-or-later
 
 Lightweight events calendar: month/list views, per-event colors and labels, single event pages, CSV import with preview, iCal feeds, and one-click migration from The Events Calendar.
@@ -15,8 +15,8 @@ Lightweight events calendar: month/list views, per-event colors and labels, sing
 2. Create a normal WordPress Page (e.g. /events/) and add the calendar shortcode. The plugin does not take over /events/ — single events live at /event/slug/.
 
    [ashford_events]                        Month grid (collapses to a list on mobile)
-   [ashford_events view="list"]            List view
-   [ashford_events view="list" months="3"] List view spanning 3 months
+   [ashford_events view="list"]            Upcoming list (all events, Load more every 10)
+   [ashford_events view="list" months="3"] List view (months attr kept for compatibility; list shows all upcoming)
    [ashford_events category="tournament"]  Filter by category slug
 
 3. Import events: Events > Import & Tools > upload your CSV, review the preview, then Run Import.
@@ -29,7 +29,8 @@ Lightweight events calendar: month/list views, per-event colors and labels, sing
 4. Colors resolve in this order: event override > category color > default color (set under Events > Import & Tools).
 
 5. Migrating from The Events Calendar: Events > Import & Tools > Migrate Events. Slugs are preserved so existing
-   /event/... URLs keep working. Deactivate The Events Calendar after confirming the migration, then flush permalinks.
+   /event/... URLs keep working. Re-run migration to refresh dates/times on already-migrated events. Deactivate
+   The Events Calendar after confirming, then flush permalinks.
 
 == Theming ==
 

@@ -126,6 +126,39 @@
 			}, 80 );
 		}
 
+		function initListPagination() {
+			var list = body.querySelector( '.ash-cal__list[data-ash-page-size]' );
+			var more = body.querySelector( '[data-ash-more]' );
+			if ( ! list ) {
+				return;
+			}
+			var size = parseInt( list.getAttribute( 'data-ash-page-size' ), 10 ) || 10;
+			var shown = size;
+
+			function apply() {
+				var cards = list.querySelectorAll( '.ash-cal__card' );
+				cards.forEach( function ( card, i ) {
+					card.classList.toggle( 'is-page-hidden', i >= shown );
+				} );
+				list.querySelectorAll( '.ash-cal__list-day' ).forEach( function ( day ) {
+					var visible = day.querySelectorAll( '.ash-cal__card:not(.is-page-hidden)' );
+					day.classList.toggle( 'is-page-hidden', visible.length === 0 );
+				} );
+				if ( more ) {
+					more.hidden = shown >= cards.length;
+				}
+			}
+
+			apply();
+
+			if ( more ) {
+				more.onclick = function () {
+					shown += size;
+					apply();
+				};
+			}
+		}
+
 		function load( month, pushHistory ) {
 			hideActivePopover();
 
@@ -148,6 +181,7 @@
 					body.innerHTML = data.html;
 					if ( title ) { title.textContent = data.title; }
 					root.dataset.month = data.month;
+					initListPagination();
 
 					if ( pushHistory && window.history && window.history.pushState ) {
 						var url = new URL( window.location.href );
@@ -259,6 +293,8 @@
 			}
 			load( month, false );
 		} );
+
+		initListPagination();
 	}
 
 	function boot() {

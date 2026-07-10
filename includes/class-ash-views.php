@@ -45,7 +45,9 @@ class Ash_Events_Views {
 
 		return rest_ensure_response( array(
 			'month' => $month,
-			'title' => date_i18n( 'F Y', strtotime( $month . '-01' ) ),
+			'title' => 'list' === $view
+				? __( 'Upcoming Events', 'ashford-events' )
+				: date_i18n( 'F Y', strtotime( $month . '-01' ) ),
 			'html'  => self::render_body( $month, $view, $category, $months ),
 		) );
 	}
@@ -82,7 +84,7 @@ class Ash_Events_Views {
 			data-category="<?php echo esc_attr( $category ); ?>"
 			data-months="<?php echo esc_attr( max( 1, (int) $atts['months'] ) ); ?>"
 			data-endpoint="<?php echo esc_url( rest_url( 'ash-events/v1/calendar' ) ); ?>">
-			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null ); ?>
+			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null, $view ); ?>
 			<div class="ash-cal__body" aria-live="polite">
 				<?php echo self::render_body( $month, $view, $category, (int) $atts['months'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
@@ -100,12 +102,8 @@ class Ash_Events_Views {
 
 		ob_start();
 		if ( 'list' === $view ) {
-			$current_month = current_time( 'Y-m' );
-			$today         = current_time( 'Y-m-d' );
-			$from          = ( $month === $current_month ) ? $today : $first;
-			$to            = gmdate( 'Y-m-t', strtotime( $first . ' +' . ( $months - 1 ) . ' months' ) );
-			$events        = Ash_Events_Query::between( $from, $to, $category );
-			self::render_list( $events );
+			$events = Ash_Events_Query::upcoming( $category );
+			self::render_list( $events, true );
 		} else {
 			$today         = current_time( 'Y-m-d' );
 			$current_month = current_time( 'Y-m' );
@@ -152,8 +150,9 @@ class Ash_Events_Views {
 	 * @param string      $month           Y-m
 	 * @param string|null $active_category Slug of active category filter, or null to hide the filter
 	 *                                     (used when the shortcode locks a category).
+	 * @param string      $view            month|list
 	 */
-	private static function render_nav( $month, $active_category ) {
+	private static function render_nav( $month, $active_category, $view = 'month' ) {
 		$prev = gmdate( 'Y-m', strtotime( $month . '-01 -1 month' ) );
 		$next = gmdate( 'Y-m', strtotime( $month . '-01 +1 month' ) );
 		$now  = current_time( 'Y-m' );
@@ -161,13 +160,18 @@ class Ash_Events_Views {
 
 		$chev_left  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
 		$chev_right = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+		$title      = 'list' === $view
+			? __( 'Upcoming Events', 'ashford-events' )
+			: date_i18n( 'F Y', strtotime( $month . '-01' ) );
 		?>
 		<div class="ash-cal__nav">
 			<div class="ash-cal__nav-left">
-				<a class="ash-cal__chev" data-ash-nav="prev" href="<?php echo esc_url( add_query_arg( 'ash_month', $prev, $base ) ); ?>" rel="nofollow" aria-label="<?php esc_attr_e( 'Previous month', 'ashford-events' ); ?>"><?php echo $chev_left; // phpcs:ignore ?></a>
-				<a class="ash-cal__chev" data-ash-nav="next" href="<?php echo esc_url( add_query_arg( 'ash_month', $next, $base ) ); ?>" rel="nofollow" aria-label="<?php esc_attr_e( 'Next month', 'ashford-events' ); ?>"><?php echo $chev_right; // phpcs:ignore ?></a>
-				<a class="ash-cal__today" data-ash-nav="today" href="<?php echo esc_url( add_query_arg( 'ash_month', $now, $base ) ); ?>" rel="nofollow"><?php esc_html_e( 'This Month', 'ashford-events' ); ?></a>
-				<h2 class="ash-cal__title"><?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?></h2>
+				<?php if ( 'list' !== $view ) : ?>
+					<a class="ash-cal__chev" data-ash-nav="prev" href="<?php echo esc_url( add_query_arg( 'ash_month', $prev, $base ) ); ?>" rel="nofollow" aria-label="<?php esc_attr_e( 'Previous month', 'ashford-events' ); ?>"><?php echo $chev_left; // phpcs:ignore ?></a>
+					<a class="ash-cal__chev" data-ash-nav="next" href="<?php echo esc_url( add_query_arg( 'ash_month', $next, $base ) ); ?>" rel="nofollow" aria-label="<?php esc_attr_e( 'Next month', 'ashford-events' ); ?>"><?php echo $chev_right; // phpcs:ignore ?></a>
+					<a class="ash-cal__today" data-ash-nav="today" href="<?php echo esc_url( add_query_arg( 'ash_month', $now, $base ) ); ?>" rel="nofollow"><?php esc_html_e( 'This Month', 'ashford-events' ); ?></a>
+				<?php endif; ?>
+				<h2 class="ash-cal__title"><?php echo esc_html( $title ); ?></h2>
 			</div>
 			<?php if ( null !== $active_category ) : ?>
 				<div class="ash-cal__nav-right">
@@ -257,17 +261,31 @@ class Ash_Events_Views {
 		echo '</div>';
 	}
 
-	private static function render_card( $event, $show_label = false, $popover = false ) {
+	private static function render_card( $event, $show_label = false, $popover = false, $hide_empty_time = false ) {
 		$color = ash_events_color( $event->ID );
 		$text  = ash_events_text_color( $event->ID );
 		$time  = get_post_meta( $event->ID, '_ash_start_time', true );
 		$date  = get_post_meta( $event->ID, '_ash_start_date', true );
-		$time_display = $time ? date_i18n( 'g:i a', strtotime( $date . ' ' . $time ) ) : __( 'Time TBD', 'ashford-events' );
+		if ( $time ) {
+			$time_display = date_i18n( 'g:i a', strtotime( $date . ' ' . $time ) );
+		} elseif ( $hide_empty_time ) {
+			$time_display = '';
+		} else {
+			$time_display = __( 'Time TBD', 'ashford-events' );
+		}
 		$label = ash_events_label( $event->ID );
-		$when  = $date ? date_i18n( 'F j', strtotime( $date ) ) . ' @ ' . $time_display : $time_display;
+		if ( $date && $time_display ) {
+			$when = date_i18n( 'F j', strtotime( $date ) ) . ' @ ' . $time_display;
+		} elseif ( $date ) {
+			$when = date_i18n( 'F j', strtotime( $date ) );
+		} else {
+			$when = $time_display;
+		}
 		?>
 		<a class="ash-cal__card" href="<?php echo esc_url( get_permalink( $event ) ); ?>" style="--ash-ev:<?php echo esc_attr( $color ); ?>;--ash-ev-text:<?php echo esc_attr( $text ); ?>">
-			<span class="ash-cal__card-time"><?php echo esc_html( $time_display ); ?></span>
+			<?php if ( $time_display ) : ?>
+				<span class="ash-cal__card-time"><?php echo esc_html( $time_display ); ?></span>
+			<?php endif; ?>
 			<span class="ash-cal__card-title"><?php echo esc_html( get_the_title( $event ) ); ?></span>
 			<?php if ( $show_label && $label ) : ?>
 				<span class="ash-cal__card-label"><?php echo esc_html( $label ); ?></span>
@@ -288,22 +306,33 @@ class Ash_Events_Views {
 		<?php
 	}
 
-	private static function render_list( $events ) {
+	/**
+	 * @param WP_Post[] $events
+	 * @param bool      $paginate Whether to paginate (~10 events) with a Load more control.
+	 */
+	private static function render_list( $events, $paginate = false ) {
 		$by_date = Ash_Events_Query::group_by_date( $events );
 		if ( empty( $by_date ) ) {
-			echo '<p class="ash-cal__empty">' . esc_html__( 'No events scheduled this month. Use the arrows above to browse.', 'ashford-events' ) . '</p>';
+			$empty = $paginate
+				? __( 'No upcoming events scheduled.', 'ashford-events' )
+				: __( 'No events scheduled this month. Use the arrows above to browse.', 'ashford-events' );
+			echo '<p class="ash-cal__empty">' . esc_html( $empty ) . '</p>';
 			return;
 		}
-		echo '<div class="ash-cal__list">';
+		$hide_empty_time = (bool) $paginate;
+		echo '<div class="ash-cal__list"' . ( $paginate ? ' data-ash-page-size="10"' : '' ) . '>';
 		foreach ( $by_date as $date => $items ) {
 			echo '<div class="ash-cal__list-day">';
 			echo '<h3 class="ash-cal__list-date">' . esc_html( date_i18n( 'l, F j', strtotime( $date ) ) ) . '</h3>';
 			echo '<div class="ash-cal__cards">';
 			foreach ( $items as $event ) {
-				self::render_card( $event, true );
+				self::render_card( $event, true, false, $hide_empty_time );
 			}
 			echo '</div></div>';
 		}
 		echo '</div>';
+		if ( $paginate && count( $events ) > 10 ) {
+			echo '<button type="button" class="ash-cal__more" data-ash-more>' . esc_html__( 'Load more', 'ashford-events' ) . '</button>';
+		}
 	}
 }

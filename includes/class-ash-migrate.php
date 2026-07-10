@@ -19,7 +19,7 @@ class Ash_Events_Migrate {
 				<?php
 				printf(
 					/* translators: %d: event count */
-					esc_html__( 'Found %d events from The Events Calendar. Migration copies titles, dates, images, categories, and event URLs into Ashford Events — original slugs are preserved so /event/ links keep working after you deactivate the old plugin. Existing TEC events are left untouched.', 'ashford-events' ),
+					esc_html__( 'Found %d events from The Events Calendar. Migration copies titles, dates/times, images, categories, and event URLs into Ashford Events — original slugs are preserved so /event/ links keep working after you deactivate the old plugin. Re-running updates dates and times on events already migrated.', 'ashford-events' ),
 					(int) $count
 				);
 				?>
@@ -56,10 +56,10 @@ class Ash_Events_Migrate {
 		}
 
 		$migrated = 0;
+		$updated  = 0;
 		$skipped  = 0;
 
 		foreach ( $tec_events as $tec ) {
-			// Skip if we've already migrated this slug.
 			$existing = get_posts( array(
 				'post_type'      => 'ash_event',
 				'name'           => $tec->post_name,
@@ -68,51 +68,39 @@ class Ash_Events_Migrate {
 				'fields'         => 'ids',
 				'no_found_rows'  => true,
 			) );
-			if ( $existing ) {
-				$skipped++;
-				continue;
+
+			$is_update = ! empty( $existing );
+			if ( $is_update ) {
+				$new_id = (int) $existing[0];
+			} else {
+				$new_id = wp_insert_post( array(
+					'post_type'    => 'ash_event',
+					'post_status'  => $tec->post_status,
+					'post_title'   => $tec->post_title,
+					'post_name'    => $tec->post_name,
+					'post_content' => $tec->post_content,
+					'post_excerpt' => $tec->post_excerpt,
+					'post_date'    => $tec->post_date,
+				), true );
+
+				if ( is_wp_error( $new_id ) || ! $new_id ) {
+					$skipped++;
+					continue;
+				}
 			}
 
-			$new_id = wp_insert_post( array(
-				'post_type'    => 'ash_event',
-				'post_status'  => $tec->post_status,
-				'post_title'   => $tec->post_title,
-				'post_name'    => $tec->post_name,
-				'post_content' => $tec->post_content,
-				'post_excerpt' => $tec->post_excerpt,
-				'post_date'    => $tec->post_date,
-			), true );
-
-			if ( is_wp_error( $new_id ) || ! $new_id ) {
-				$skipped++;
-				continue;
-			}
-
-			// Dates: TEC stores 'Y-m-d H:i:s'.
-			$start = get_post_meta( $tec->ID, '_EventStartDate', true );
-			$end   = get_post_meta( $tec->ID, '_EventEndDate', true );
-			$all_day = get_post_meta( $tec->ID, '_EventAllDay', true );
-
-			if ( $start ) {
-				update_post_meta( $new_id, '_ash_start_date', gmdate( 'Y-m-d', strtotime( $start ) ) );
-				update_post_meta( $new_id, '_ash_start_time', $all_day ? '' : gmdate( 'H:i', strtotime( $start ) ) );
-			}
-			if ( $end && ! $all_day && $start && gmdate( 'Y-m-d', strtotime( $end ) ) === gmdate( 'Y-m-d', strtotime( $start ) ) ) {
-				update_post_meta( $new_id, '_ash_end_time', gmdate( 'H:i', strtotime( $end ) ) );
-			}
+			self::copy_tec_schedule( $tec->ID, $new_id );
 
 			$url = get_post_meta( $tec->ID, '_EventURL', true );
 			if ( $url ) {
 				update_post_meta( $new_id, '_ash_website', esc_url_raw( $url ) );
 			}
 
-			// Featured image.
 			$thumb = get_post_thumbnail_id( $tec->ID );
 			if ( $thumb ) {
 				set_post_thumbnail( $new_id, $thumb );
 			}
 
-			// Categories (by name, created if missing).
 			$terms = get_the_terms( $tec->ID, 'tribe_events_cat' );
 			if ( $terms && ! is_wp_error( $terms ) ) {
 				$term_ids = array();
@@ -130,15 +118,90 @@ class Ash_Events_Migrate {
 				}
 			}
 
-			$migrated++;
+			if ( $is_update ) {
+				$updated++;
+			} else {
+				$migrated++;
+			}
 		}
 
 		wp_safe_redirect( self::back_url( array(
 			'ash_notice' => 'migrate_done',
 			'migrated'   => $migrated,
+			'updated'    => $updated,
 			'skipped'    => $skipped,
 		) ) );
 		exit;
+	}
+
+	/**
+	 * Copy start/end date and time from a TEC event.
+	 * Uses _EventStartDate as local wall time (Y-m-d H:i:s) — no UTC conversion.
+	 */
+	private static function copy_tec_schedule( $tec_id, $ash_id ) {
+		$start = get_post_meta( $tec_id, '_EventStartDate', true );
+		if ( ! $start ) {
+			$start = get_post_meta( $tec_id, '_EventStartDateUTC', true );
+		}
+		$end     = get_post_meta( $tec_id, '_EventEndDate', true );
+		$all_day = strtolower( trim( (string) get_post_meta( $tec_id, '_EventAllDay', true ) ) );
+
+		$parsed = self::parse_tec_datetime( $start );
+		if ( ! $parsed['date'] ) {
+			return;
+		}
+
+		update_post_meta( $ash_id, '_ash_start_date', $parsed['date'] );
+
+		// All-day only when TEC says so AND the clock is midnight. Otherwise keep the real time
+		// (TEC sometimes leaves _EventAllDay set incorrectly while still storing a start time).
+		$is_midnight = ( '00:00' === $parsed['time'] );
+		if ( 'yes' === $all_day && $is_midnight ) {
+			update_post_meta( $ash_id, '_ash_start_time', '' );
+			delete_post_meta( $ash_id, '_ash_end_time' );
+			return;
+		}
+
+		update_post_meta( $ash_id, '_ash_start_time', $parsed['time'] );
+
+		$end_parsed = self::parse_tec_datetime( $end );
+		if ( $end_parsed['date'] && $end_parsed['date'] === $parsed['date'] && $end_parsed['time'] && $end_parsed['time'] !== $parsed['time'] ) {
+			update_post_meta( $ash_id, '_ash_end_time', $end_parsed['time'] );
+		} else {
+			delete_post_meta( $ash_id, '_ash_end_time' );
+		}
+	}
+
+	/**
+	 * Parse TEC datetime string as local wall clock — do not shift through UTC/gmdate.
+	 *
+	 * @return array{date:string,time:string} time is H:i or '' if unparseable.
+	 */
+	private static function parse_tec_datetime( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) {
+			return array( 'date' => '', 'time' => '' );
+		}
+
+		$dt = DateTime::createFromFormat( 'Y-m-d H:i:s', $value );
+		if ( ! $dt instanceof DateTime ) {
+			$dt = DateTime::createFromFormat( 'Y-m-d H:i', $value );
+		}
+		if ( ! $dt instanceof DateTime ) {
+			// Last resort: take the date/time digits literally from the string.
+			if ( preg_match( '/^(\d{4}-\d{2}-\d{2})(?:[ T](\d{2}):(\d{2}))?/', $value, $m ) ) {
+				return array(
+					'date' => $m[1],
+					'time' => isset( $m[2] ) ? $m[2] . ':' . $m[3] : '',
+				);
+			}
+			return array( 'date' => '', 'time' => '' );
+		}
+
+		return array(
+			'date' => $dt->format( 'Y-m-d' ),
+			'time' => $dt->format( 'H:i' ),
+		);
 	}
 
 	private static function back_url( $args = array() ) {

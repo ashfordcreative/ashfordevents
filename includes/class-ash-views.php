@@ -231,7 +231,13 @@ class Ash_Events_Views {
 
 				$classes = 'ash-cal__day' . ( $in ? '' : ' is-outside' ) . ( $is_today ? ' is-today' : '' );
 				echo '<div class="' . esc_attr( $classes ) . '" role="gridcell">';
-				echo '<span class="ash-cal__daynum">' . esc_html( gmdate( 'j', strtotime( $date ) ) ) . '</span>';
+
+				// When the rolling "from today" grid crosses into a new month, label the 1st with the month name.
+				$day_label = gmdate( 'j', strtotime( $date ) );
+				if ( $from_today && '01' === gmdate( 'd', strtotime( $date ) ) ) {
+					$day_label = date_i18n( 'F j', strtotime( $date ) );
+				}
+				echo '<span class="ash-cal__daynum">' . esc_html( $day_label ) . '</span>';
 
 				if ( ! empty( $by_date[ $date ] ) ) {
 					echo '<div class="ash-cal__cards">';

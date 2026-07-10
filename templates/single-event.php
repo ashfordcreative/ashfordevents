@@ -18,7 +18,6 @@ while ( have_posts() ) :
 	$ash_text    = ash_events_text_color( $ash_id );
 	$ash_label   = ash_events_label( $ash_id );
 	$ash_date    = get_post_meta( $ash_id, '_ash_start_date', true );
-	$ash_time    = get_post_meta( $ash_id, '_ash_start_time', true );
 	$ash_website = get_post_meta( $ash_id, '_ash_website', true );
 	$ash_terms   = get_the_terms( $ash_id, 'ash_event_cat' );
 	$ash_ics     = add_query_arg( array( 'ash_ical' => '1', 'event' => $ash_id ), home_url( '/' ) );
@@ -40,17 +39,15 @@ while ( have_posts() ) :
 				<div class="ash-single-page__main">
 					<a class="ash-single-page__back" href="<?php echo esc_url( Ash_Events_Single::calendar_url() ); ?>">&laquo; <?php esc_html_e( 'All Events', 'ashford-events' ); ?></a>
 
-					<h1 class="ash-single-page__title"><?php the_title(); ?></h1>
-
-					<?php if ( $ash_date ) : ?>
-						<p class="ash-single-page__when"><?php echo esc_html( Ash_Events_Single::format_when_short( $ash_date, $ash_time ) ); ?></p>
-					<?php endif; ?>
-
 					<?php if ( ! empty( $ash_term_names ) ) : ?>
 						<div class="ash-single-page__chips">
 							<span class="ash-single-page__chip"><?php echo esc_html( $ash_term_names[0] ); ?></span>
 						</div>
 					<?php endif; ?>
+
+					<h1 class="ash-single-page__title"><?php the_title(); ?></h1>
+
+					<?php echo Ash_Events_Single::render_amenities( $ash_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 					<?php if ( $ash_has_img ) : ?>
 						<figure class="ash-single-page__image ash-single-page__image--mobile">
@@ -94,8 +91,6 @@ while ( have_posts() ) :
 					</aside>
 				<?php endif; ?>
 			</div>
-
-			<?php echo Ash_Events_Single::render_amenities( $ash_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 			<?php if ( $ash_related ) : ?>
 				<section class="ash-single-page__related">

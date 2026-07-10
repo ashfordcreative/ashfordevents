@@ -413,27 +413,11 @@
 	text-decoration: underline;
 	color: var(--ash-ev, var(--ash-accent));
 }
-.ash-single-page__title {
-	margin: 0 0 10px;
-	font-family: inherit;
-	font-size: 45px;
-	font-weight: 700;
-	line-height: 1.15;
-	letter-spacing: -0.02em;
-	color: var(--ash-text);
-}
-.ash-single-page__when {
-	font-size: 18px;
-	font-weight: 600;
-	margin: 0 0 14px;
-	line-height: 1.35;
-	color: var(--ash-text);
-}
 .ash-single-page__chips {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	margin: 0 0 8px;
+	margin: 0 0 12px;
 }
 .ash-single-page__chip {
 	display: inline-block;
@@ -444,6 +428,15 @@
 	font-size: 13px;
 	font-weight: 600;
 	letter-spacing: 0.02em;
+}
+.ash-single-page__title {
+	margin: 0 0 20px;
+	font-family: inherit;
+	font-size: 45px;
+	font-weight: 700;
+	line-height: 1.15;
+	letter-spacing: -0.02em;
+	color: var(--ash-text);
 }
 .ash-single-page__image {
 	margin: 0;
@@ -551,7 +544,13 @@
 	color: var(--ash-text);
 }
 
-/* Airbnb-style amenities — full-width 3-column grid */
+/* Airbnb-style amenities — under title, 3-column within main column */
+.ash-single-page__main .ash-single-page__amenities {
+	margin: 0 0 28px;
+	padding-top: 0;
+	border-top: 0;
+	width: 100%;
+}
 .ash-single-page__amenities {
 	margin: 40px 0 0;
 	padding-top: 32px;
@@ -559,9 +558,9 @@
 	width: 100%;
 }
 .ash-single-page__amenities-heading {
-	margin: 0 0 18px;
+	margin: 0 0 14px;
 	font-family: inherit;
-	font-size: 28px;
+	font-size: 22px;
 	font-weight: 700;
 	letter-spacing: -0.01em;
 	line-height: 1.25;
@@ -573,7 +572,7 @@
 	padding: 0;
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 0 28px;
+	gap: 0 20px;
 }
 .ash-single-page__amenity {
 	display: flex;

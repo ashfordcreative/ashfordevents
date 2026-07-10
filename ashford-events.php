@@ -3,7 +3,7 @@
  * Plugin Name:       Ashford Events
  * Plugin URI:        https://ashfordcreative.com
  * Description:       Lightweight events calendar with month/list views, per-event colors and labels, single event pages, CSV import, iCal feeds, and one-click migration from The Events Calendar.
- * Version:           1.3.2
+ * Version:           1.3.3
  * Author:            Ashford Creative
  * License:           GPL-2.0-or-later
  * Text Domain:       ashford-events
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'ASH_EVENTS_VERSION', '1.3.2' );
+define( 'ASH_EVENTS_VERSION', '1.3.3' );
 define( 'ASH_EVENTS_FILE', __FILE__ );
 define( 'ASH_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ASH_EVENTS_URL', plugin_dir_url( __FILE__ ) );

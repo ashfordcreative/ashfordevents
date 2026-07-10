@@ -4,7 +4,7 @@ Tags: events, calendar, csv import
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPL-2.0-or-later
 
 Lightweight events calendar: month/list views, per-event colors and labels, single event pages, CSV import with preview, iCal feeds, and one-click migration from The Events Calendar.

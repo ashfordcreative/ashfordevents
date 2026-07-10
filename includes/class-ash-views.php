@@ -51,24 +51,18 @@ class Ash_Events_Views {
 	}
 
 	/**
-	 * [ashford_events view="month|list" category="slug" months="1" show_views="true|false"]
+	 * [ashford_events view="month|list" category="slug" months="1"]
 	 */
 	public static function shortcode( $atts ) {
 		wp_enqueue_style( 'ash-events' );
 		wp_enqueue_script( 'ash-events' );
 
 		$atts = shortcode_atts( array(
-			'view'       => 'month',
-			'category'   => '',
-			'months'     => 1,
-			'show_views' => 'true',
+			'view'     => 'month',
+			'category' => '',
+			'months'   => 1,
 		), $atts, 'ashford_events' );
 		$view = 'list' === $atts['view'] ? 'list' : 'month';
-		if ( isset( $_GET['ash_view'] ) && in_array( sanitize_key( wp_unslash( $_GET['ash_view'] ) ), array( 'month', 'list' ), true ) ) {
-			$view = sanitize_key( wp_unslash( $_GET['ash_view'] ) );
-		}
-
-		$show_views = ! in_array( strtolower( (string) $atts['show_views'] ), array( '0', 'false', 'no', 'off', 'hide' ), true );
 
 		$month = isset( $_GET['ash_month'] ) ? sanitize_text_field( wp_unslash( $_GET['ash_month'] ) ) : '';
 		if ( ! preg_match( '/^\d{4}-(0[1-9]|1[0-2])$/', $month ) ) {
@@ -88,7 +82,7 @@ class Ash_Events_Views {
 			data-category="<?php echo esc_attr( $category ); ?>"
 			data-months="<?php echo esc_attr( max( 1, (int) $atts['months'] ) ); ?>"
 			data-endpoint="<?php echo esc_url( rest_url( 'ash-events/v1/calendar' ) ); ?>">
-			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null, $view, $show_views ); ?>
+			<?php self::render_nav( $month, '' === $atts['category'] ? $category : null ); ?>
 			<div class="ash-cal__body" aria-live="polite">
 				<?php echo self::render_body( $month, $view, $category, (int) $atts['months'] ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			</div>
@@ -159,19 +153,15 @@ class Ash_Events_Views {
 	 * @param string      $month           Y-m
 	 * @param string|null $active_category Slug of active category filter, or null to hide the filter
 	 *                                     (used when the shortcode locks a category).
-	 * @param string      $view            month|list
-	 * @param bool        $show_views      Whether to show the month/list toggle.
 	 */
-	private static function render_nav( $month, $active_category, $view = 'month', $show_views = true ) {
+	private static function render_nav( $month, $active_category ) {
 		$prev = gmdate( 'Y-m', strtotime( $month . '-01 -1 month' ) );
 		$next = gmdate( 'Y-m', strtotime( $month . '-01 +1 month' ) );
 		$now  = current_time( 'Y-m' );
-		$base = remove_query_arg( array( 'ash_month', 'ash_cat', 'ash_view' ) );
+		$base = remove_query_arg( array( 'ash_month', 'ash_cat' ) );
 
 		$chev_left  = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
 		$chev_right = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
-		$icon_month = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/><path d="M8 15h.01M12 15h.01M16 15h.01M8 19h.01M12 19h.01"/></svg>';
-		$icon_list  = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
 		?>
 		<div class="ash-cal__nav">
 			<div class="ash-cal__nav-left">
@@ -180,17 +170,11 @@ class Ash_Events_Views {
 				<a class="ash-cal__today" data-ash-nav="today" href="<?php echo esc_url( add_query_arg( 'ash_month', $now, $base ) ); ?>" rel="nofollow"><?php esc_html_e( 'This Month', 'ashford-events' ); ?></a>
 				<h2 class="ash-cal__title"><?php echo esc_html( date_i18n( 'F Y', strtotime( $month . '-01' ) ) ); ?></h2>
 			</div>
-			<div class="ash-cal__nav-right">
-				<?php if ( $show_views ) : ?>
-					<div class="ash-cal__views" role="group" aria-label="<?php esc_attr_e( 'Calendar view', 'ashford-events' ); ?>">
-						<button type="button" class="ash-cal__view-btn<?php echo 'month' === $view ? ' is-active' : ''; ?>" data-ash-view="month" aria-label="<?php esc_attr_e( 'Month view', 'ashford-events' ); ?>" title="<?php esc_attr_e( 'Month view', 'ashford-events' ); ?>"><?php echo $icon_month; // phpcs:ignore ?></button>
-						<button type="button" class="ash-cal__view-btn<?php echo 'list' === $view ? ' is-active' : ''; ?>" data-ash-view="list" aria-label="<?php esc_attr_e( 'List view', 'ashford-events' ); ?>" title="<?php esc_attr_e( 'List view', 'ashford-events' ); ?>"><?php echo $icon_list; // phpcs:ignore ?></button>
-					</div>
-				<?php endif; ?>
-				<?php if ( null !== $active_category ) : ?>
+			<?php if ( null !== $active_category ) : ?>
+				<div class="ash-cal__nav-right">
 					<?php self::render_category_filter( $active_category ); ?>
-				<?php endif; ?>
-			</div>
+				</div>
+			<?php endif; ?>
 		</div>
 		<?php
 	}

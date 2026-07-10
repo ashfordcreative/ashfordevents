@@ -1,4 +1,4 @@
-/* Ashford Events — navigation, view toggle, category filter, hover popovers */
+/* Ashford Events — navigation, category filter, hover popovers */
 ( function () {
 	'use strict';
 
@@ -19,12 +19,6 @@
 		var hideTimer = null;
 		if ( ! body || ! endpoint ) {
 			return;
-		}
-
-		function setViewButtons( view ) {
-			root.querySelectorAll( '[data-ash-view]' ).forEach( function ( btn ) {
-				btn.classList.toggle( 'is-active', btn.getAttribute( 'data-ash-view' ) === view );
-			} );
 		}
 
 		function clearHideTimer() {
@@ -154,7 +148,6 @@
 					body.innerHTML = data.html;
 					if ( title ) { title.textContent = data.title; }
 					root.dataset.month = data.month;
-					setViewButtons( root.dataset.view || 'month' );
 
 					if ( pushHistory && window.history && window.history.pushState ) {
 						var url = new URL( window.location.href );
@@ -164,15 +157,9 @@
 						} else {
 							url.searchParams.delete( 'ash_cat' );
 						}
-						if ( root.dataset.view && root.dataset.view !== 'month' ) {
-							url.searchParams.set( 'ash_view', root.dataset.view );
-						} else {
-							url.searchParams.delete( 'ash_view' );
-						}
 						window.history.pushState( {
 							ashMonth: data.month,
-							ashCat: root.dataset.category,
-							ashView: root.dataset.view
+							ashCat: root.dataset.category
 						}, '', url.toString() );
 					}
 				} )
@@ -188,18 +175,6 @@
 		}
 
 		root.addEventListener( 'click', function ( e ) {
-			var viewBtn = e.target.closest( '[data-ash-view]' );
-			if ( viewBtn && root.contains( viewBtn ) ) {
-				e.preventDefault();
-				var nextView = viewBtn.getAttribute( 'data-ash-view' );
-				if ( nextView && nextView !== root.dataset.view ) {
-					root.dataset.view = nextView;
-					setViewButtons( nextView );
-					load( root.dataset.month, true );
-				}
-				return;
-			}
-
 			var nav = e.target.closest( '[data-ash-nav]' );
 			if ( ! nav || ! root.contains( nav ) ) {
 				return;
@@ -274,10 +249,7 @@
 			var url   = new URL( window.location.href );
 			var month = url.searchParams.get( 'ash_month' ) || root.dataset.current;
 			var cat   = url.searchParams.get( 'ash_cat' ) || '';
-			var view  = url.searchParams.get( 'ash_view' ) || 'month';
 			root.dataset.category = cat;
-			root.dataset.view = view;
-			setViewButtons( view );
 			if ( filter ) {
 				filter.value = cat;
 				if ( dot ) {

@@ -59,43 +59,6 @@
 	flex-wrap: wrap;
 	margin-left: auto;
 }
-.ash-cal__views {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-}
-.ash-cal__view-btn {
-	appearance: none;
-	border: 0 !important;
-	background: transparent !important;
-	box-shadow: none !important;
-	color: var(--ash-text);
-	opacity: 0.35;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 28px;
-	height: 28px;
-	padding: 0;
-	border-radius: 0;
-	cursor: pointer;
-	line-height: 0;
-	transition: opacity 0.15s ease;
-}
-.ash-cal__view-btn svg {
-	display: block;
-	pointer-events: none;
-}
-.ash-cal__view-btn:hover,
-.ash-cal__view-btn:focus-visible {
-	opacity: 0.7;
-	background: transparent !important;
-}
-.ash-cal__view-btn.is-active {
-	opacity: 1;
-	background: transparent !important;
-	color: var(--ash-text);
-}
 .ash-cal__chev {
 	display: inline-flex;
 	align-items: center;

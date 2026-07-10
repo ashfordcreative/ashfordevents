@@ -71,6 +71,35 @@ class Ash_Events_Query {
 	}
 
 	/**
+	 * Category terms that have at least one upcoming published event.
+	 *
+	 * @return WP_Term[]
+	 */
+	public static function upcoming_category_terms() {
+		$events = self::upcoming();
+		if ( empty( $events ) ) {
+			return array();
+		}
+
+		$by_id = array();
+		foreach ( $events as $event ) {
+			$terms = get_the_terms( $event->ID, 'ash_event_cat' );
+			if ( ! $terms || is_wp_error( $terms ) ) {
+				continue;
+			}
+			foreach ( $terms as $term ) {
+				$by_id[ $term->term_id ] = $term;
+			}
+		}
+
+		$terms = array_values( $by_id );
+		usort( $terms, function ( $a, $b ) {
+			return strcasecmp( $a->name, $b->name );
+		} );
+		return $terms;
+	}
+
+	/**
 	 * Group events by their Y-m-d start date.
 	 *
 	 * @param WP_Post[] $posts

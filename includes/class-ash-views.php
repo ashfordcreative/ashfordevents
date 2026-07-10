@@ -183,11 +183,8 @@ class Ash_Events_Views {
 	}
 
 	private static function render_category_filter( $active ) {
-		$terms = get_terms( array(
-			'taxonomy'   => 'ash_event_cat',
-			'hide_empty' => true,
-		) );
-		if ( empty( $terms ) || is_wp_error( $terms ) ) {
+		$terms = Ash_Events_Query::upcoming_category_terms();
+		if ( empty( $terms ) ) {
 			return;
 		}
 		$default = get_option( 'ash_events_default_color', '#C9A353' );

@@ -10,7 +10,13 @@ class Ash_Events_Views {
 	}
 
 	public static function register_assets() {
-		wp_register_style( 'ash-events', ASH_EVENTS_URL . 'assets/css/calendar.css', array(), ASH_EVENTS_VERSION );
+		wp_register_style(
+			'ash-events-fonts',
+			'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap',
+			array(),
+			null
+		);
+		wp_register_style( 'ash-events', ASH_EVENTS_URL . 'assets/css/calendar.css', array( 'ash-events-fonts' ), ASH_EVENTS_VERSION );
 		wp_register_script( 'ash-events', ASH_EVENTS_URL . 'assets/js/calendar.js', array(), ASH_EVENTS_VERSION, true );
 	}
 
@@ -99,18 +105,31 @@ class Ash_Events_Views {
 			$events = Ash_Events_Query::between( $first, $to, $category );
 			self::render_list( $events );
 		} else {
-			$start_of_week = 0; // Sunday
-			$grid_start    = self::grid_start( $first, $start_of_week );
-			$grid_end      = gmdate( 'Y-m-d', strtotime( $grid_start . ' +41 days' ) );
-			$events        = Ash_Events_Query::between( $grid_start, $grid_end, $category );
-			$by_date       = Ash_Events_Query::group_by_date( $events );
+			$today         = current_time( 'Y-m-d' );
+			$current_month = current_time( 'Y-m' );
+			// Current month: start the grid on today so upcoming events lead.
+			// Other months: classic Sunday-aligned month grid.
+			if ( $month === $current_month ) {
+				$start_of_week = (int) gmdate( 'w', strtotime( $today ) );
+				$grid_start    = $today;
+			} else {
+				$start_of_week = 0; // Sunday
+				$grid_start    = self::grid_start( $first, $start_of_week );
+			}
+			$grid_end = gmdate( 'Y-m-d', strtotime( $grid_start . ' +41 days' ) );
+			$events   = Ash_Events_Query::between( $grid_start, $grid_end, $category );
+			$by_date  = Ash_Events_Query::group_by_date( $events );
 
-			self::render_month_grid( $month, $grid_start, $by_date, $start_of_week );
+			self::render_month_grid( $month, $grid_start, $by_date, $start_of_week, $month === $current_month );
 
 			$month_events = array();
 			foreach ( $events as $e ) {
 				$d = get_post_meta( $e->ID, '_ash_start_date', true );
 				if ( $d >= $first && $d <= $last ) {
+					// On the current month mobile list, skip past days.
+					if ( $month === $current_month && $d < $today ) {
+						continue;
+					}
 					$month_events[] = $e;
 				}
 			}
@@ -189,7 +208,7 @@ class Ash_Events_Views {
 		<?php
 	}
 
-	private static function render_month_grid( $month, $grid_start, $by_date, $start_of_week ) {
+	private static function render_month_grid( $month, $grid_start, $by_date, $start_of_week, $from_today = false ) {
 		$today = current_time( 'Y-m-d' );
 		global $wp_locale;
 
@@ -207,7 +226,7 @@ class Ash_Events_Views {
 			for ( $col = 0; $col < 7; $col++ ) {
 				$offset   = $row * 7 + $col;
 				$date     = gmdate( 'Y-m-d', strtotime( $grid_start . ' +' . $offset . ' days' ) );
-				$in       = ( substr( $date, 0, 7 ) === $month );
+				$in       = $from_today ? true : ( substr( $date, 0, 7 ) === $month );
 				$is_today = ( $date === $today );
 
 				$classes = 'ash-cal__day' . ( $in ? '' : ' is-outside' ) . ( $is_today ? ' is-today' : '' );

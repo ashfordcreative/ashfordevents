@@ -96,7 +96,7 @@ class Ash_Events_Importer {
 			<code>Event Label</code>, <code>Event Color</code>, <code>Event Website</code>, <code>Event Featured Image</code>,
 			<code>Buy-In/Starting Stack</code>, <code>Rebuys/Add-Ons/Levels</code>, <code>Guarantee</code>.
 		</p>
-		<p><?php esc_html_e( 'Rows matching an existing event (same name, date, and start time) update it instead of creating a duplicate — reimporting a corrected sheet is safe. A start time of "TBD" imports as an all-day event.', 'ashford-events' ); ?></p>
+		<p><?php esc_html_e( 'Rows matching an existing event (same name and date) update it instead of creating a duplicate — including filling in times on TBD events. Reimporting a corrected sheet is safe. A start time of "TBD" imports as an all-day event.', 'ashford-events' ); ?></p>
 		<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 			<?php wp_nonce_field( 'ash_import_upload' ); ?>
 			<input type="hidden" name="action" value="ash_import_upload">
@@ -378,8 +378,14 @@ class Ash_Events_Importer {
 				if ( $existing ) {
 					$row['status']      = 'update';
 					$row['existing_id'] = $existing;
+					$old_time = get_post_meta( $existing, '_ash_start_time', true );
+					if ( $time && $old_time !== $time ) {
+						$row['note'] = $old_time
+							? __( 'Will update the existing event (including start time).', 'ashford-events' )
+							: __( 'Will fill in the start time on the existing TBD event.', 'ashford-events' );
+					}
 				}
-				if ( '' === $time && 'error' !== $row['status'] ) {
+				if ( '' === $time && 'error' !== $row['status'] && '' === $row['note'] ) {
 					$row['note'] = __( 'No start time — will import as time TBD.', 'ashford-events' );
 				}
 			}
@@ -424,24 +430,49 @@ class Ash_Events_Importer {
 		return $ts ? gmdate( 'H:i', $ts ) : '';
 	}
 
-	/** Find an existing event by exact title + start date + start time. Returns post ID or 0. */
+	/**
+	 * Find an existing event by title + start date.
+	 * Prefers an exact start-time match, then a TBD (empty time) event so a
+	 * corrected CSV can fill times without creating duplicates.
+	 * Returns post ID or 0.
+	 */
 	private static function find_existing( $title, $date, $time ) {
 		$query = new WP_Query( array(
 			'post_type'      => 'ash_event',
 			'post_status'    => array( 'publish', 'future', 'draft', 'pending' ),
 			'title'          => $title,
-			'posts_per_page' => 5,
+			'posts_per_page' => 20,
 			'no_found_rows'  => true,
 			'fields'         => 'ids',
 			'meta_query'     => array(
 				array( 'key' => '_ash_start_date', 'value' => $date ),
 			),
 		) );
+		if ( empty( $query->posts ) ) {
+			return 0;
+		}
+
+		$tbd_id = 0;
 		foreach ( $query->posts as $post_id ) {
-			if ( get_post_meta( $post_id, '_ash_start_time', true ) === $time ) {
+			$existing_time = (string) get_post_meta( $post_id, '_ash_start_time', true );
+			if ( $existing_time === (string) $time ) {
 				return $post_id;
 			}
+			if ( '' === $existing_time && ! $tbd_id ) {
+				$tbd_id = $post_id;
+			}
 		}
+
+		// CSV has a real time and the only/best match is a TBD event — update it.
+		if ( $time && $tbd_id ) {
+			return $tbd_id;
+		}
+
+		// Single same-name/same-day event: allow time corrections either way.
+		if ( 1 === count( $query->posts ) ) {
+			return (int) $query->posts[0];
+		}
+
 		return 0;
 	}
 

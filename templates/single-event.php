@@ -25,6 +25,13 @@ while ( have_posts() ) :
 	$ash_google  = Ash_Events_Single::google_link( $ash_id );
 	$ash_related = Ash_Events_Single::related( $ash_id );
 	$ash_has_img = has_post_thumbnail();
+	$ash_content = trim( (string) get_the_content() );
+
+	// Avoid repeating the category name as both a chip and body text.
+	$ash_term_names = ( $ash_terms && ! is_wp_error( $ash_terms ) )
+		? wp_list_pluck( $ash_terms, 'name' )
+		: array();
+	$ash_show_label = $ash_label && ! in_array( $ash_label, $ash_term_names, true );
 	?>
 	<main class="ash-single-page<?php echo $ash_has_img ? ' has-image' : ''; ?>" style="--ash-ev:<?php echo esc_attr( $ash_color ); ?>;--ash-ev-text:<?php echo esc_attr( $ash_text ); ?>">
 		<div class="ash-single-page__inner">
@@ -39,11 +46,9 @@ while ( have_posts() ) :
 						<p class="ash-single-page__when"><?php echo esc_html( Ash_Events_Single::format_when_short( $ash_date, $ash_time ) ); ?></p>
 					<?php endif; ?>
 
-					<?php if ( $ash_terms && ! is_wp_error( $ash_terms ) ) : ?>
+					<?php if ( ! empty( $ash_term_names ) ) : ?>
 						<div class="ash-single-page__chips">
-							<?php foreach ( $ash_terms as $ash_term ) : ?>
-								<span class="ash-single-page__chip"><?php echo esc_html( $ash_term->name ); ?></span>
-							<?php endforeach; ?>
+							<span class="ash-single-page__chip"><?php echo esc_html( $ash_term_names[0] ); ?></span>
 						</div>
 					<?php endif; ?>
 
@@ -53,9 +58,9 @@ while ( have_posts() ) :
 						</figure>
 					<?php endif; ?>
 
-					<?php if ( get_the_content() ) : ?>
+					<?php if ( $ash_content ) : ?>
 						<div class="ash-single-page__content"><?php the_content(); ?></div>
-					<?php elseif ( $ash_label ) : ?>
+					<?php elseif ( $ash_show_label ) : ?>
 						<p class="ash-single-page__content"><?php echo esc_html( $ash_label ); ?></p>
 					<?php endif; ?>
 
@@ -79,8 +84,6 @@ while ( have_posts() ) :
 							</details>
 						<?php endif; ?>
 					</div>
-
-					<?php echo Ash_Events_Single::render_amenities( $ash_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</div>
 
 				<?php if ( $ash_has_img ) : ?>
@@ -92,6 +95,8 @@ while ( have_posts() ) :
 				<?php endif; ?>
 			</div>
 
+			<?php echo Ash_Events_Single::render_amenities( $ash_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+
 			<?php if ( $ash_related ) : ?>
 				<section class="ash-single-page__related">
 					<h2 class="ash-single-page__related-heading"><?php esc_html_e( 'Related Events', 'ashford-events' ); ?></h2>
@@ -101,9 +106,7 @@ while ( have_posts() ) :
 							$rel_time = get_post_meta( $ash_rel->ID, '_ash_start_time', true );
 							?>
 							<a class="ash-single-page__related-card" href="<?php echo esc_url( get_permalink( $ash_rel ) ); ?>">
-								<?php if ( has_post_thumbnail( $ash_rel ) ) : ?>
-									<span class="ash-single-page__related-img"><?php echo get_the_post_thumbnail( $ash_rel, 'medium_large', array( 'loading' => 'lazy' ) ); ?></span>
-								<?php endif; ?>
+								<span class="ash-single-page__related-img"><?php echo get_the_post_thumbnail( $ash_rel, 'medium_large', array( 'loading' => 'lazy' ) ); ?></span>
 								<span class="ash-single-page__related-title"><?php echo esc_html( get_the_title( $ash_rel ) ); ?></span>
 								<span class="ash-single-page__related-when"><?php echo esc_html( Ash_Events_Single::format_when_short( $rel_date, $rel_time ) ); ?></span>
 							</a>

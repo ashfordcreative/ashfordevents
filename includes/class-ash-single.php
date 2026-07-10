@@ -284,7 +284,7 @@ class Ash_Events_Single {
 		), 'https://www.google.com/calendar/render' );
 	}
 
-	/** Upcoming events in the same category (fallback: any upcoming), excluding the current one. */
+	/** Upcoming events in the same category (fallback: any upcoming), excluding the current one. Only events with a featured image. */
 	public static function related( $post_id, $limit = 3 ) {
 		$today = current_time( 'Y-m-d' );
 		$args  = array(
@@ -294,11 +294,16 @@ class Ash_Events_Single {
 			'post__not_in'   => array( $post_id ),
 			'no_found_rows'  => true,
 			'meta_query'     => array(
+				'relation' => 'AND',
 				array(
 					'key'     => '_ash_start_date',
 					'value'   => $today,
 					'compare' => '>=',
 					'type'    => 'DATE',
+				),
+				array(
+					'key'     => '_thumbnail_id',
+					'compare' => 'EXISTS',
 				),
 			),
 			'meta_key' => '_ash_start_date',

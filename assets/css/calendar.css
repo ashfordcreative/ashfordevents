@@ -62,37 +62,39 @@
 .ash-cal__views {
 	display: inline-flex;
 	align-items: center;
-	padding: 2px;
-	border: 1px solid #E2E2DE;
-	border-radius: 8px;
-	background: #fff;
-	gap: 1px;
+	gap: 4px;
 }
 .ash-cal__view-btn {
 	appearance: none;
-	border: 0;
-	background: transparent;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
 	color: var(--ash-text);
+	opacity: 0.35;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 32px;
-	height: 32px;
+	width: 28px;
+	height: 28px;
 	padding: 0;
-	border-radius: 6px;
+	border-radius: 0;
 	cursor: pointer;
 	line-height: 0;
+	transition: opacity 0.15s ease;
 }
 .ash-cal__view-btn svg {
 	display: block;
+	pointer-events: none;
 }
 .ash-cal__view-btn:hover,
 .ash-cal__view-btn:focus-visible {
-	background: var(--ash-cell);
+	opacity: 0.7;
+	background: transparent !important;
 }
 .ash-cal__view-btn.is-active {
-	background: var(--ash-text);
-	color: #fff;
+	opacity: 1;
+	background: transparent !important;
+	color: var(--ash-text);
 }
 .ash-cal__chev {
 	display: inline-flex;
